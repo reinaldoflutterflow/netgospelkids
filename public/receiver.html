@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <title>NetGospel Kids - Receptor</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    
+    /* Estilo para desabilitar o menu de contexto */
+    video::-webkit-media-controls-enclosure {
+      overflow: hidden;
+    }
+    
+    video::-webkit-media-controls-panel {
+      width: calc(100% + 30px);
+    }
+    
+    /* Esconde o botão de download */
+    video::-webkit-media-controls-download-button {
+      display: none !important;
+    }
+    
+    /* Estilo personalizado para controles semelhantes ao player principal */
+    .custom-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 20;
+    }
+    
+    #player-container:hover .custom-controls {
+      opacity: 1;
+    }
+    
+    .controls-left, .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .control-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: white;
+      padding: 5px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+    
+    .control-btn:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .time-display {
+      color: white;
+      font-size: 14px;
+      margin-left: 10px;
+    }
+    
+    .progress-bar-container {
+      flex-grow: 1;
+      margin: 0 20px;
+    }
+    
+    .progress-bar-bg {
+      height: 5px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 2.5px;
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background-color: #FF4B4B;
+      border-radius: 2.5px;
+      width: 0%;
+    }
+    
+    #player-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    
+    #video-player {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    
+    #info-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      color: white;
+      z-index: 10;
+    }
+    
+    #title {
+      font-size: 24px;
+      margin: 0;
+      padding: 0;
+    }
+    
+    #status {
+      font-size: 16px;
+      margin: 10px 0 0 0;
+      padding: 0;
+    }
+    
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 20px;
+      text-align: center;
+    }
+    
+    .logo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div id="player-container">
+    <div id="info-overlay">
+      <h1 id="title">NetGospel Kids</h1>
+      <p id="status">Conectado</p>
+    </div>
+    
+    <div id="loading">Carregando vídeo...</div>
+    
+    <video id="video-player" autoplay controlsList="nodownload nofullscreen" disablePictureInPicture></video>
+    
+    <!-- Controles personalizados -->
+    <div class="custom-controls">
+      <div class="controls-left">
+        <button id="play-pause-btn" class="control-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+        <span id="time-display" class="time-display">00:00 / 00:00</span>
+      </div>
+      <div class="progress-bar-container">
+        <div id="progress-bar-bg" class="progress-bar-bg">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+      </div>
+      <div class="controls-right">
+        <button id="mute-btn" class="control-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <img class="logo" src="/img/logo.png" alt="NetGospel Kids">
+  </div>
+
+  <script>
+    // Elementos do DOM
+    const videoPlayer = document.getElementById('video-player');
+    const titleElement = document.getElementById('title');
+    const statusElement = document.getElementById('status');
+    const loadingElement = document.getElementById('loading');
+    
+    // Obtém os parâmetros da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoUrl = decodeURIComponent(urlParams.get('videoUrl') || '');
+    const currentTime = parseFloat(urlParams.get('currentTime') || '0');
+    const title = urlParams.get('title') || 'NetGospel Kids';
+    const source = urlParams.get('source') || '';
+    const timestamp = urlParams.get('timestamp') || '';
+    
+    // Configura o título
+    titleElement.textContent = title;
+    document.title = `NetGospel Kids - ${title}`;
+    
+    // Inicializa o player
+    function initPlayer() {
+      if (!videoUrl) {
+        statusElement.textContent = 'Erro: URL do vídeo não fornecida';
+        loadingElement.textContent = 'Não foi possível carregar o vídeo';
+        return;
+      }
+      
+      console.log('Tentando carregar vídeo com URL:', videoUrl);
+      
+      // Tenta criar uma URL absoluta se for relativa
+      let videoSrc = videoUrl;
+      try {
+        // Verifica se a URL é válida
+        new URL(videoUrl);
+      } catch (e) {
+        // Se não for uma URL válida, tenta criar uma URL absoluta
+        console.log('URL inválida, tentando criar URL absoluta');
+        videoSrc = window.location.origin + (videoUrl.startsWith('/') ? '' : '/') + videoUrl;
+      }
+      
+      console.log('URL final do vídeo:', videoSrc);
+      
+      // Configura a fonte do vídeo com atributos de segurança
+      videoPlayer.src = videoSrc;
+      videoPlayer.crossOrigin = 'anonymous'; // Permite carregar vídeos de outras origens
+      videoPlayer.controlsList = 'nodownload nofullscreen';
+      videoPlayer.disablePictureInPicture = true;
+      videoPlayer.muted = false; // Garante que o áudio esteja habilitado
+      videoPlayer.controls = false; // Desativa controles nativos para usar os personalizados
+      
+      // Tenta forçar o carregamento
+      videoPlayer.load();
+      
+      // Desativa o menu de contexto para evitar opções de download
+      videoPlayer.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      });
+      
+      // Exibe a URL do vídeo na tela para depuração
+      const debugInfo = document.createElement('div');
+      debugInfo.style.position = 'absolute';
+      debugInfo.style.bottom = '10px';
+      debugInfo.style.left = '10px';
+      debugInfo.style.color = 'white';
+      debugInfo.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      debugInfo.style.padding = '10px';
+      debugInfo.style.borderRadius = '5px';
+      debugInfo.style.fontSize = '12px';
+      debugInfo.style.maxWidth = '80%';
+      debugInfo.style.wordBreak = 'break-all';
+      debugInfo.innerHTML = `<strong>URL do vídeo:</strong> ${videoSrc}`;
+      document.body.appendChild(debugInfo);
+      
+      // Adiciona um manipulador de erro para depuração
+      videoPlayer.onerror = function() {
+        console.error('Erro ao carregar vídeo:', videoPlayer.error);
+        statusElement.textContent = `Erro ao carregar vídeo: ${videoPlayer.error?.message || 'Desconhecido'}`;
+        loadingElement.textContent = `Código de erro: ${videoPlayer.error?.code || 'N/A'}`;
+      };
+      
+      // Eventos do player
+      videoPlayer.addEventListener('loadedmetadata', () => {
+        console.log('Metadados do vídeo carregados, duração:', videoPlayer.duration);
+        
+        // Define o tempo atual
+        videoPlayer.currentTime = currentTime;
+        console.log('Tempo definido para:', currentTime);
+        
+        // Esconde o elemento de carregamento
+        loadingElement.style.display = 'none';
+        
+        // Inicia a reprodução
+        const playPromise = videoPlayer.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('Reprodução iniciada com sucesso');
+              statusElement.textContent = 'Reproduzindo';
+            })
+            .catch(error => {
+              console.error('Erro ao iniciar reprodução:', error);
+              statusElement.textContent = 'Erro ao iniciar reprodução';
+              
+              // Tenta novamente com interação do usuário
+              const playButton = document.getElementById('play-pause-btn');
+              if (playButton) {
+                playButton.classList.add('animate-pulse');
+              }
+            });
+        }
+      });
+      });
+      
+      videoPlayer.addEventListener('play', () => {
+        statusElement.textContent = 'Reproduzindo';
+      });
+      
+      videoPlayer.addEventListener('pause', () => {
+        statusElement.textContent = 'Pausado';
+      });
+      
+      videoPlayer.addEventListener('ended', () => {
+        statusElement.textContent = 'Finalizado';
+      });
+      
+      videoPlayer.addEventListener('error', (e) => {
+        console.error('Erro no elemento de vídeo:', videoPlayer.error);
+        statusElement.textContent = `Erro ao reproduzir vídeo: ${videoPlayer.error?.message || 'Desconhecido'}`;
+        loadingElement.textContent = `Erro ao carregar o vídeo. Código: ${videoPlayer.error?.code || 'Desconhecido'}`;
+        loadingElement.style.display = 'block';
+        
+        // Tenta uma abordagem alternativa com um iframe como fallback
+        if (videoSrc.includes('bunny.net') || videoSrc.includes('bunnycdn.com')) {
+          console.log('Tentando abordagem alternativa com iframe para Bunny.net');
+          const container = document.getElementById('player-container');
+          const iframe = document.createElement('iframe');
+          iframe.src = videoSrc;
+          iframe.width = '100%';
+          iframe.height = '100%';
+          iframe.style.border = 'none';
+          iframe.allowFullscreen = true;
+          
+          // Remove o player de vídeo e adiciona o iframe
+          videoPlayer.style.display = 'none';
+          container.appendChild(iframe);
+          loadingElement.style.display = 'none';
+          statusElement.textContent = 'Reproduzindo (modo alternativo)';
+        }
+      });
+    }
+    
+    // Configura a conexão de apresentação
+    if ('PresentationConnection' in window) {
+      const connection = navigator.presentation?.receiver?.connectionList?.connections[0];
+      
+      if (connection) {
+        // Configura os listeners de eventos
+        connection.onmessage = event => {
+          try {
+            const message = JSON.parse(event.data);
+            
+            if (message.command === 'playback') {
+              const { action, value } = message.data;
+              
+              switch (action) {
+                case 'play':
+                  videoPlayer.play();
+                  break;
+                case 'pause':
+                  videoPlayer.pause();
+                  break;
+                case 'seek':
+                  if (typeof value === 'number') {
+                    videoPlayer.currentTime = value;
+                  }
+                  break;
+              }
+            }
+          } catch (error) {
+            console.error('Erro ao processar mensagem:', error);
+          }
+        };
+        
+        // Envia atualizações de estado para o emissor
+        videoPlayer.addEventListener('timeupdate', () => {
+          if (videoPlayer.currentTime % 5 < 0.1) { // Envia a cada 5 segundos aproximadamente
+            connection.send(JSON.stringify({
+              type: 'timeupdate',
+              currentTime: videoPlayer.currentTime,
+              duration: videoPlayer.duration
+            }));
+          }
+        });
+      }
+    }
+    
+    // Inicializa o player quando a página carregar
+    window.addEventListener('load', initPlayer);
+    
+    // Adiciona um manipulador para o botão de play/pause
+    document.getElementById('play-pause-btn').addEventListener('click', function() {
+      if (videoPlayer.paused) {
+        videoPlayer.play();
+        this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+        statusElement.textContent = 'Reproduzindo';
+      } else {
+        videoPlayer.pause();
+        this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+        statusElement.textContent = 'Pausado';
+      }
+    });
+    
+    // Tenta carregar o vídeo novamente se não iniciar em 5 segundos
+    setTimeout(function() {
+      if (loadingElement.style.display !== 'none') {
+        console.log('Vídeo não carregou em 5 segundos, tentando novamente...');
+        videoPlayer.load();
+        videoPlayer.play().catch(err => console.error('Erro na segunda tentativa:', err));
+      }
+    }, 5000);
+    
+    // Exibe informações de debug
+    console.log('Parâmetros recebidos:', {
+      videoUrl,
+      currentTime,
+      title,
+      source,
+      timestamp,
+      'User-Agent': navigator.userAgent
+    });
+    
+    // Implementação dos controles personalizados
+    document.addEventListener('DOMContentLoaded', function() {
+      const playPauseBtn = document.getElementById('play-pause-btn');
+      const muteBtn = document.getElementById('mute-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const progressBarBg = document.getElementById('progress-bar-bg');
+      const timeDisplay = document.getElementById('time-display');
+      
+      // Função para formatar o tempo
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      
+      // Atualiza o tempo e a barra de progresso
+      videoPlayer.addEventListener('timeupdate', function() {
+        const currentTime = videoPlayer.currentTime;
+        const duration = videoPlayer.duration;
+        
+        // Atualiza a barra de progresso
+        const progress = (currentTime / duration) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Atualiza o display de tempo
+        timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+      });
+      
+      // Botão de play/pause
+      playPauseBtn.addEventListener('click', function() {
+        if (videoPlayer.paused) {
+          videoPlayer.play();
+          playPauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+        } else {
+          videoPlayer.pause();
+          playPauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+        }
+      });
+      
+      // Botão de mudo
+      muteBtn.addEventListener('click', function() {
+        videoPlayer.muted = !videoPlayer.muted;
+        if (videoPlayer.muted) {
+          muteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>';
+        } else {
+          muteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+        }
+      });
+      
+      // Clique na barra de progresso
+      progressBarBg.addEventListener('click', function(e) {
+        const rect = progressBarBg.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        videoPlayer.currentTime = pos * videoPlayer.duration;
+      });
+      
+      // Atualiza o botão de play/pause quando o vídeo inicia ou pausa
+      videoPlayer.addEventListener('play', function() {
+        playPauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+      });
+      
+      videoPlayer.addEventListener('pause', function() {
+        playPauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+      });
+    });
+    
+    // Adiciona um manipulador para mensagens de erro não capturadas
+    window.addEventListener('error', function(event) {
+      console.error('Erro global:', event.error);
+      statusElement.textContent = 'Erro: ' + (event.error?.message || 'Desconhecido');
+    });
+  </script>
+</body>
+</html>
