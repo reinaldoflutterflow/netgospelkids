@@ -1,5 +1,8 @@
 <template>
   <div class="min-h-screen bg-[#141414]">
+    <!-- Tela de promoção do aplicativo para dispositivos móveis -->
+    <MobileAppPromo v-if="isMobileDevice" />
+    
     <!-- Mostrar tela de login se não estiver autenticado -->
     <LoginScreen v-if="!isAuthenticated && !authLoading" @login-success="handleLoginSuccess" />
     
@@ -8,7 +11,7 @@
       <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
     </div>
     
-    <!-- Conteúdo principal quando autenticado -->
+    <!-- Conteúdo principal quando autenticado e não é dispositivo móvel -->
     <template v-if="isAuthenticated">
     <header class="fixed top-0 z-50 w-full flex items-center justify-between px-4 py-2 transition-all lg:px-10 lg:py-4 bg-gradient-to-b from-black/80 to-transparent">
       <div class="flex items-center space-x-8">
@@ -500,16 +503,46 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref, onBeforeMount } from 'vue';
 import HeroBanner from '@/components/HeroBanner.vue';
 import ContentRow from '@/components/ContentRow.vue';
 import AdminPanel from '@/components/AdminPanel.vue';
 import LoginScreen from '@/components/LoginScreen.vue';
 import CustomVideoPlayer from '@/components/CustomVideoPlayer.vue';
+import MobileAppPromo from '@/components/MobileAppPromo.vue';
 import { registerVideoView } from '@/services/videosAssistidosService';
 import { initAuth, isAuthenticated, authLoading, currentUser, logout } from '@/services/authService';
 import { getUserProfilePhoto, getUserName } from '@/services/userProfileService';
 import { getRecentVideos } from '@/services/recentVideosService';
+
+// Detectar se é um dispositivo móvel
+const isMobileDevice = ref(false);
+
+// Função para verificar se é um dispositivo móvel
+function checkIfMobile() {
+  // Verifica o user agent
+  const userAgent = navigator.userAgent.toLowerCase();
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i;
+  
+  // Verifica a largura da tela (dispositivos com menos de 768px são considerados móveis)
+  const isMobileWidth = window.innerWidth < 768;
+  
+  // Considera móvel se o user agent indicar ou se a tela for estreita
+  isMobileDevice.value = mobileRegex.test(userAgent) || isMobileWidth;
+  
+  // Para testes, forçando a detecção como móvel
+  isMobileDevice.value = true;
+}
+
+// Verificar se é um dispositivo móvel antes de montar o componente
+onBeforeMount(() => {
+  checkIfMobile();
+});
+
+// Também verificar quando a janela for redimensionada
+onMounted(() => {
+  window.addEventListener('resize', checkIfMobile);
+});
 
 // Dados do perfil do usuário
 const userProfilePhoto = ref('@/assets/avatar.png');
