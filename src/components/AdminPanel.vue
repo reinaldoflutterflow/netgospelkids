@@ -138,10 +138,10 @@ async function saveDestaque() {
     const { data, error } = await supabase
       .from('destaque')
       .insert([{
-        titulo: form.titulo,
-        capa: form.capa,
-        url_video: form.url_video,
-        descricao: form.descricao
+        titulo: form.value.titulo,
+        capa: form.value.capa,
+        url_video: form.value.url_video,
+        descricao: form.value.descricao
       }])
       .select();
       

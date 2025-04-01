@@ -751,8 +751,8 @@ async function handleLoginSuccess() {
 }
 
 // Dados para a seção de Histórias Bíblicas
-import { ref, onMounted as onMountedVideos } from 'vue';
-import { getVideoDevocionalByCategoria, type VideoDevocional } from '@/services/videoDevocionalService';
+import { onMounted as onMountedVideos } from 'vue';
+import { getVideoDevocionalByCategoria } from '@/services/videoDevocionalService';
 import { getFilmes } from '@/services/filmesService';
 import { getTop10Videos } from '@/services/top10Service';
 
@@ -904,7 +904,7 @@ async function openVideoModal(video: VideoDevocional) {
     
     // Registra a visualização na tabela videos_assistidos
     import('@/services/videosAssistidosService').then(({ registerVideoView }) => {
-      registerVideoView(video.id).then(success => {
+      registerVideoView(video.id).then((success: boolean) => {
         if (success) {
           // Atualiza a lista de "Continuar Assistindo" após registrar a visualização
           // Pequeno atraso para garantir que o banco de dados processou a inserção
@@ -985,7 +985,7 @@ const fallbackVideos = [
 ];
 
 // Dados para a seção de Continuar Assistindo
-import { getContinuarAssistindo, type ContinuarAssistindo } from '@/services/continuarAssistindoService';
+import { getContinuarAssistindo } from '@/services/continuarAssistindoService';
 import { getVideoProgress } from '@/services/videoProgressService';
 
 const continueWatchingVideos = ref<ContinuarAssistindo[]>([]);
@@ -1047,7 +1047,7 @@ async function openContinueWatchingVideo(video: ContinuarAssistindo) {
     
     // Registra a visualização na tabela videos_assistidos
     import('@/services/videosAssistidosService').then(({ registerVideoView }) => {
-      registerVideoView(video.video_id).then(success => {
+      registerVideoView(video.video_id).then((success: boolean) => {
         if (success) {
           // Atualiza a lista de "Continuar Assistindo" após registrar a visualização
           // Pequeno atraso para garantir que o banco de dados processou a inserção
@@ -1143,7 +1143,7 @@ function isNewVideo(video: VideoDevocional): boolean {
 }
 
 // Formata a data para exibição
-function formatDate(dateString: string | null): string {
+function formatDate(dateString: string | null | undefined): string {
   if (!dateString) return '';
   
   const date = new Date(dateString);

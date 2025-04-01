@@ -3,6 +3,15 @@
  * Utiliza a API de Presentation para descobrir e se conectar a displays secundários
  */
 
+// Definindo o tipo PresentationConnection que não está disponível por padrão
+interface PresentationConnection {
+  id: string;
+  state: string;
+  send: (data: string) => void;
+  close: () => void;
+  terminate?: () => void; // Adicionando o método terminate como opcional
+}
+
 // Interface para gerenciar o estado da conexão
 interface CastState {
   available: boolean;
@@ -225,7 +234,12 @@ export function stopCasting(): boolean {
   }
   
   try {
-    castState.connection.terminate();
+    // Usando o método close em vez de terminate
+    if (castState.connection.terminate) {
+      castState.connection.terminate();
+    } else {
+      castState.connection.close();
+    }
     return true;
   } catch (error) {
     console.error('Erro ao encerrar transmissão:', error);

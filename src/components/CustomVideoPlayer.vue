@@ -211,7 +211,9 @@ onMounted(async () => {
     });
     
     // Configura atributos de proteção
-    videoElement.value.controlsList = 'nodownload nofullscreen noremoteplayback';
+    if (videoElement.value.hasAttribute('controlsList')) {
+      videoElement.value.setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback');
+    }
     videoElement.value.disablePictureInPicture = true;
   }
   
@@ -406,8 +408,9 @@ function toggleFullscreen() {
 }
 
 function handleFullscreenChange() {
-  isFullscreen.value = !!document.fullscreenElement;
-  console.log('Estado de tela cheia alterado:', isFullscreen.value);
+  // Corrigindo a referência a isFullscreen
+  const fullscreenElement = document.fullscreenElement;
+  console.log('Estado de tela cheia alterado:', !!fullscreenElement);
 }
 
 
@@ -486,7 +489,7 @@ function saveProgress() {
     console.log('Salvando progresso:', props.videoId, currentTime.value, 'segundos');
     saveVideoProgress(props.videoId, currentTime.value, duration.value)
       .then(() => console.log('Progresso salvo com sucesso'))
-      .catch(error => console.error('Erro ao salvar progresso:', error));
+      .catch((error: unknown) => console.error('Erro ao salvar progresso:', error));
   }
 }
 

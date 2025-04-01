@@ -102,6 +102,7 @@
             <CustomVideoPlayer 
               v-if="selectedVideo.url && !isExternalVideo(selectedVideo.url)" 
               :videoUrl="getVideoUrl(selectedVideo.url)" 
+              :videoId="String(selectedVideo.id || '0')"
               @video-ended="handleVideoEnded"
             />
             <iframe 
@@ -193,7 +194,7 @@ async function openVideoModal(video: VideoDevocional) {
       await registerVideoView(video.id);
       
       // Atualiza a contagem de visualizações localmente
-      if (video.view !== undefined) {
+      if (video.view !== undefined && video.view !== null) {
         video.view += 1;
       } else {
         video.view = 1;
