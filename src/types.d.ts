@@ -1,7 +1,6 @@
 // Declaração de tipos para os componentes Vue
 declare module '@/components/HeroBanner.vue';
 declare module '@/components/ContentRow.vue';
-declare module '@/components/AdminPanel.vue';
 declare module '@/components/LoginScreen.vue';
 declare module '@/components/CustomVideoPlayer.vue';
 declare module '@/components/MobileAppPromo.vue';

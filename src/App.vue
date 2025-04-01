@@ -114,9 +114,17 @@
       <section class="px-12 py-8">
         <h2 class="text-xl font-semibold text-white mb-4">Histórias Bíblicas</h2>
         
-        <!-- Indicador de carregamento -->
-        <div v-if="loadingVideos" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <!-- Skeleton loader durante o carregamento -->
+        <div v-if="loadingVideos" class="relative">
+          <div class="flex flex-col sm:flex-row overflow-y-auto sm:overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth">
+            <SkeletonLoader 
+              v-for="n in 5" 
+              :key="n" 
+              type="card" 
+              class="w-full sm:flex-none sm:w-[calc(20%-16px)] sm:min-w-[200px]" 
+              :custom-style="{height: '180px'}" 
+            />
+          </div>
         </div>
         
         <!-- Mensagem se não houver vídeos -->
@@ -161,9 +169,11 @@
                 <div class="w-full h-0 pb-[56.25%] relative">
                   <div class="absolute inset-0 overflow-hidden">
                     <img 
+                      v-image-retry="{defaultSrc: '@/assets/movies/movie1.jpg', maxRetries: 3}"
                       :src="video.url_img || '@/assets/movies/movie1.jpg'" 
                       :alt="video.titulo || 'Vídeo Bíblico'" 
                       class="w-[120%] h-[120%] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 object-cover transition duration-200 group-hover:scale-105" 
+                      @error="handleImageError($event, video)"
                     />
                   </div>
                 </div>
@@ -214,9 +224,17 @@
       <section class="px-12 py-8">
         <h2 class="text-xl font-semibold text-white mb-4">Continuar Assistindo</h2>
         
-        <!-- Indicador de carregamento -->
-        <div v-if="loadingContinueWatching" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <!-- Skeleton loader durante o carregamento -->
+        <div v-if="loadingContinueWatching" class="relative">
+          <div class="flex flex-col sm:flex-row overflow-y-auto sm:overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth">
+            <div v-for="n in 5" :key="n" class="relative group w-full sm:flex-none sm:w-[calc(20%-16px)] sm:min-w-[200px]">
+              <SkeletonLoader type="card" :custom-style="{height: '180px'}" />
+              <!-- Barra de progresso skeleton -->
+              <div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-800">
+                <SkeletonLoader type="text" :custom-style="{height: '4px', width: '60%', borderRadius: '0'}" />
+              </div>
+            </div>
+          </div>
         </div>
         
         <!-- Mensagem se não houver vídeos -->
@@ -258,10 +276,15 @@
             >
               <div class="relative overflow-hidden rounded-xl">
                 <!-- Usa a imagem do vídeo ou uma imagem padrão se não houver -->
-                <div class="w-full h-40 bg-center bg-no-repeat bg-cover transition duration-200 group-hover:scale-105"
-                  :style="{ backgroundImage: `url(${video.url_img || '@/assets/continue/continue1.jpg'})` }"
-                  :aria-label="video.titulo || 'Vídeo sem título'"
-                ></div>
+                <div class="w-full h-40 relative overflow-hidden">
+                  <img 
+                    v-image-retry="{defaultSrc: '@/assets/continue/continue1.jpg', maxRetries: 3}"
+                    :src="video.url_img || '@/assets/continue/continue1.jpg'" 
+                    :alt="video.titulo || 'Vídeo sem título'" 
+                    class="w-full h-full object-cover transition duration-200 group-hover:scale-105"
+                    @error="handleImageError($event, video)"
+                  />
+                </div>
                 
                 <!-- Barra de progresso -->
                 <div class="absolute bottom-0 left-0 right-0 h-1 bg-red-600"></div>
@@ -288,9 +311,17 @@
       <section id="filmes-completos" class="px-12 py-8">
         <h2 class="text-xl font-semibold text-white mb-4">Filmes Completos</h2>
         
-        <!-- Indicador de carregamento -->
-        <div v-if="loadingFilmes" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <!-- Skeleton loader durante o carregamento -->
+        <div v-if="loadingFilmes" class="relative">
+          <div class="flex flex-col sm:flex-row overflow-y-auto sm:overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth">
+            <SkeletonLoader 
+              v-for="n in 5" 
+              :key="n" 
+              type="card" 
+              class="w-full sm:flex-none sm:w-[calc(20%-16px)] sm:min-w-[200px]" 
+              :custom-style="{height: '180px'}" 
+            />
+          </div>
         </div>
         
         <!-- Mensagem se não houver filmes -->
@@ -332,10 +363,15 @@
             >
               <div class="relative overflow-hidden rounded-xl">
                 <!-- Usa a imagem do filme ou uma imagem padrão se não houver -->
-                <div class="w-full h-40 bg-center bg-no-repeat bg-cover transition duration-200 group-hover:scale-105"
-                  :style="{ backgroundImage: `url(${filme.url_img || '@/assets/movies/movie1.jpg'})` }"
-                  :aria-label="filme.titulo || 'Filme sem título'"
-                ></div>
+                <div class="w-full h-40 relative overflow-hidden">
+                  <img 
+                    v-image-retry="{defaultSrc: '@/assets/movies/movie1.jpg', maxRetries: 3}"
+                    :src="filme.url_img || '@/assets/movies/movie1.jpg'" 
+                    :alt="filme.titulo || 'Filme sem título'" 
+                    class="w-full h-full object-cover transition duration-200 group-hover:scale-105"
+                    @error="handleImageError($event, filme)"
+                  />
+                </div>
                 
                 <!-- Título do filme -->
                 <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
@@ -353,9 +389,29 @@
       <section class="px-4 sm:px-8 md:px-12 py-6 sm:py-8">
         <h2 class="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Top 10 em histórias bíblicas e educativas</h2>
         
-        <!-- Indicador de carregamento -->
-        <div v-if="loadingTop10" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <!-- Skeleton loader durante o carregamento para versão mobile -->
+        <div v-if="loadingTop10 && isMobileView" class="mt-4 relative">
+          <div class="flex overflow-x-auto scrollbar-hide gap-3 pb-4">
+            <SkeletonLoader 
+              v-for="n in 5" 
+              :key="n" 
+              type="card" 
+              class="flex-none w-[calc(50%-6px)] sm:w-[calc(33.333%-8px)]" 
+              :custom-style="{height: '160px'}" 
+            />
+          </div>
+        </div>
+        
+        <!-- Skeleton loader durante o carregamento para versão desktop -->
+        <div v-if="loadingTop10 && !isMobileView" class="relative flex items-center mt-4">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
+            <SkeletonLoader 
+              v-for="n in 10" 
+              :key="n" 
+              type="card" 
+              :custom-style="{height: '180px'}" 
+            />
+          </div>
         </div>
         
         <!-- Mensagem se não houver vídeos -->
@@ -404,9 +460,11 @@
               <!-- Imagem do vídeo -->
               <div class="w-full aspect-[2/3] overflow-hidden">
                 <img 
+                  v-image-retry="{defaultSrc: '@/assets/movies/movie1.jpg', maxRetries: 3}"
                   :src="video.capa_destaque || video.url_img || '@/assets/movies/movie1.jpg'" 
                   :alt="video.titulo || 'Vídeo sem título'" 
                   class="w-full h-full object-cover transition duration-200 hover:scale-105"
+                  @error="handleImageError($event, video)"
                 />
               </div>
               
@@ -470,9 +528,11 @@
                 <div class="relative w-[120px] sm:w-[150px] md:w-[180px] h-[180px] sm:h-[225px] md:h-[270px] overflow-hidden rounded-sm ml-10 sm:ml-14 md:ml-20">
                   <!-- Imagem do vídeo em formato vertical (poster) -->
                   <img 
+                    v-image-retry="{defaultSrc: '@/assets/movies/movie1.jpg', maxRetries: 3}"
                     :src="video.capa_destaque || video.url_img || '@/assets/movies/movie1.jpg'" 
                     :alt="video.titulo || 'Vídeo sem título'" 
                     class="w-full h-full object-cover transition duration-200 group-hover:scale-110" 
+                    @error="handleImageError($event, video)"
                   />
                   
                   <!-- Badge de novidade -->
@@ -616,9 +676,6 @@
         </div>
       </div>
     </footer>
-    
-    <!-- Painel administrativo para inserir dados de teste -->
-    <AdminPanel />
     </template>
   </div>
 </template>
@@ -627,10 +684,10 @@
 import { onMounted, ref, onBeforeMount } from 'vue';
 import HeroBanner from '@/components/HeroBanner.vue';
 import ContentRow from '@/components/ContentRow.vue';
-import AdminPanel from '@/components/AdminPanel.vue';
 import LoginScreen from '@/components/LoginScreen.vue';
 import CustomVideoPlayer from '@/components/CustomVideoPlayer.vue';
 import MobileAppPromo from '@/components/MobileAppPromo.vue';
+import SkeletonLoader from '@/components/SkeletonLoader.vue';
 import { registerVideoView } from '@/services/videosAssistidosService';
 import { initAuth, isAuthenticated, authLoading, currentUser, logout } from '@/services/authService';
 import { getUserProfilePhoto, getUserName } from '@/services/userProfileService';
@@ -1148,6 +1205,23 @@ function formatDate(dateString: string | null | undefined): string {
   
   const date = new Date(dateString);
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+// Função para lidar com erros de carregamento de imagens
+function handleImageError(event: Event, item: any) {
+  const img = event.target as HTMLImageElement;
+  console.log(`Erro ao carregar imagem: ${img.src}`);
+  
+  // Se o item tiver uma URL de imagem, tenta recarregá-la com um timestamp
+  if (item?.url_img) {
+    const timestamp = new Date().getTime();
+    const newSrc = item.url_img.includes('?') 
+      ? `${item.url_img}&_t=${timestamp}` 
+      : `${item.url_img}?_t=${timestamp}`;
+    
+    console.log(`Tentando recarregar com nova URL: ${newSrc}`);
+    img.src = newSrc;
+  }
 }
 
 // Carrega os vídeos do Top 10 ao montar o componente

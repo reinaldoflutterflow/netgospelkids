@@ -5,13 +5,13 @@
     <img v-else src="@/assets/banner.jpg" alt="Banner padrão" class="w-full h-full object-cover" />
     
     <div class="absolute top-[30%] left-12 z-20">
-      <div v-if="loading" class="animate-pulse">
-        <div class="h-12 bg-gray-300/20 rounded w-1/3 mb-4"></div>
-        <div class="h-4 bg-gray-300/20 rounded w-2/3 mb-2"></div>
-        <div class="h-4 bg-gray-300/20 rounded w-1/2 mb-4"></div>
+      <div v-if="loading">
+        <SkeletonLoader type="text" :custom-style="{height: '48px', width: '33%', marginBottom: '16px'}" />
+        <SkeletonLoader type="text" :custom-style="{height: '16px', width: '66%', marginBottom: '8px'}" />
+        <SkeletonLoader type="text" :custom-style="{height: '16px', width: '50%', marginBottom: '16px'}" />
         <div class="flex space-x-4">
-          <div class="h-10 bg-gray-300/20 rounded w-24"></div>
-          <div class="h-10 bg-gray-300/20 rounded w-32"></div>
+          <SkeletonLoader type="text" :custom-style="{height: '40px', width: '96px', borderRadius: '4px'}" />
+          <SkeletonLoader type="text" :custom-style="{height: '40px', width: '128px', borderRadius: '4px'}" />
         </div>
       </div>
       
@@ -63,6 +63,7 @@
 import { ref, onMounted } from 'vue';
 import { getDestaque, type Destaque } from '../services/destaqueService';
 import CustomVideoPlayer from './CustomVideoPlayer.vue';
+import SkeletonLoader from './SkeletonLoader.vue';
 
 const destaque = ref<Destaque | null>(null);
 const loading = ref(true);
