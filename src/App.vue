@@ -16,7 +16,7 @@
         <nav class="hidden lg:flex space-x-4">
           <a href="#" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Início</a>
           <a href="#filmes-completos" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Filmes</a>
-          <a href="#" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Histórias Bíblicas</a>
+          <router-link to="/historias-biblicas" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Histórias Bíblicas</router-link>
 
 
           <a href="#recentes" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Novidades</a>
