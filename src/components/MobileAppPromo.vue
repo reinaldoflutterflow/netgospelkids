@@ -42,16 +42,25 @@
       </div>
       
       <div class="account-management">
-        <router-link to="/" class="account-button">Acessar versão web</router-link>
+        <button @click="accessWebVersion" class="account-button">Acessar versão web</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, defineEmits } from 'vue';
+
+// Define os eventos que o componente pode emitir
+const emit = defineEmits(['access-web-version']);
 
 const backgroundImage = ref('https://storage.googleapis.com/flutterflow-io-6f20.appspot.com/projects/alanaland-9pr07u/assets/hqnxutn5qgup/16x9_A_warm_and_cozy_living_room_fill.png');
+
+// Função para acessar a versão web
+function accessWebVersion() {
+  // Emite o evento para o componente pai
+  emit('access-web-version');
+}
 </script>
 
 <style scoped>

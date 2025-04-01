@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#141414]">
     <!-- Tela de promoção do aplicativo para dispositivos móveis -->
-    <MobileAppPromo v-if="isMobileDevice" />
+    <MobileAppPromo v-if="isMobileDevice && !forceWebVersion" @access-web-version="showWebVersion" />
     
     <!-- Mostrar tela de login se não estiver autenticado -->
     <LoginScreen v-if="!isAuthenticated && !authLoading" @login-success="handleLoginSuccess" />
@@ -14,31 +14,40 @@
     <!-- Conteúdo principal quando autenticado e não é dispositivo móvel -->
     <template v-if="isAuthenticated">
     <header class="fixed top-0 z-50 w-full flex items-center justify-between px-4 py-2 transition-all lg:px-10 lg:py-4 bg-gradient-to-b from-black/80 to-transparent">
-      <div class="flex items-center space-x-8">
+      <div class="flex items-center">
         <img src="https://storage.googleapis.com/flutterflow-io-6f20.appspot.com/projects/alanaland-9pr07u/assets/jvucoskivscc/logolimpa.png" alt="NetGospel Kids" class="h-10" />
-        <nav class="hidden lg:flex space-x-4">
+        <!-- Menu desktop (visível apenas em telas grandes) -->
+        <nav class="hidden lg:flex space-x-4 ml-8">
           <a href="#" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Início</a>
           <a href="#filmes-completos" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Filmes</a>
           <router-link to="/historias-biblicas" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Histórias Bíblicas</router-link>
-
-
           <a href="#recentes" class="text-sm font-light text-[#e5e5e5] transition duration-[.4s] hover:text-[#b3b3b3]">Novidades</a>
         </nav>
       </div>
 
       <div class="flex items-center space-x-4">
-        <div class="relative">
+        <!-- Botão do menu mobile (visível apenas em telas pequenas) -->
+        <button 
+          @click="toggleMobileMenu" 
+          class="lg:hidden text-white focus:outline-none mr-4"
+          aria-label="Menu"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <div class="relative hidden sm:block">
           <button class="text-sm font-light text-[#e5e5e5]">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           </button>
-
         </div>
-        <div class="flex items-center">
-          <img :src="userProfilePhoto" alt="Avatar" class="rounded-full h-7 w-7 object-cover" />
+        <div class="hidden sm:flex items-center">
+          <img src="https://cdn-icons-png.flaticon.com/256/5050/5050417.png" alt="Avatar" class="rounded-full h-7 w-7 object-cover" />
           <div class="flex items-center ml-2">
-            <span class="text-white text-sm mr-2">{{ userName }}</span>
+            <span class="text-white text-sm mr-2">{{ userName || 'Reinaldo Campos' }}</span>
             <button @click="logout" class="text-sm text-red-500 hover:text-red-400">
               Sair
             </button>
@@ -46,6 +55,56 @@
         </div>
       </div>
     </header>
+    
+    <!-- Menu mobile (exibido quando o botão hamburguer é clicado) -->
+    <div 
+      v-if="mobileMenuOpen" 
+      class="fixed top-[60px] left-0 right-0 z-40 bg-black/95 shadow-lg lg:hidden"
+    >
+      <!-- Informações do usuário no topo do menu mobile -->
+      <div class="border-b border-gray-800 px-6 py-4">
+        <div class="flex items-center">
+          <img src="https://cdn-icons-png.flaticon.com/256/5050/5050417.png" alt="Avatar" class="rounded-full h-10 w-10 object-cover" />
+          <div class="flex flex-col ml-3">
+            <span class="text-white text-sm font-medium">{{ userName || 'Reinaldo Campos' }}</span>
+            <button @click="logout" class="text-sm text-red-500 hover:text-red-400 text-left mt-1">
+              Sair
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <nav class="flex flex-col py-2">
+        <a 
+          href="#" 
+          class="px-6 py-3 text-sm font-light text-[#e5e5e5] hover:bg-gray-800 transition duration-[.4s]"
+          @click="closeMobileMenu"
+        >
+          Início
+        </a>
+        <a 
+          href="#filmes-completos" 
+          class="px-6 py-3 text-sm font-light text-[#e5e5e5] hover:bg-gray-800 transition duration-[.4s]"
+          @click="closeMobileMenu"
+        >
+          Filmes
+        </a>
+        <router-link 
+          to="/historias-biblicas" 
+          class="px-6 py-3 text-sm font-light text-[#e5e5e5] hover:bg-gray-800 transition duration-[.4s]"
+          @click="closeMobileMenu"
+        >
+          Histórias Bíblicas
+        </router-link>
+        <a 
+          href="#recentes" 
+          class="px-6 py-3 text-sm font-light text-[#e5e5e5] hover:bg-gray-800 transition duration-[.4s]"
+          @click="closeMobileMenu"
+        >
+          Novidades
+        </a>
+      </nav>
+    </div>
 
     <main class="relative pt-24">
       <!-- Banner principal usando o componente HeroBanner que busca dados da tabela destaque -->
@@ -88,22 +147,26 @@
           <!-- Container com scroll horizontal -->
           <div 
             ref="scrollContainer"
-            class="flex overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth"
+            class="flex flex-col sm:flex-row overflow-y-auto sm:overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth"
             style="-ms-overflow-style: none; scrollbar-width: none;"
           >
             <div 
               v-for="video in biblicalVideos" 
               :key="video.id" 
-              class="relative group cursor-pointer flex-none w-[calc(20%-16px)] min-w-[200px]"
+              class="relative group cursor-pointer w-full sm:flex-none sm:w-[calc(20%-16px)] sm:min-w-[200px]"
               @click="openVideoModal(video)"
             >
-              <div class="relative overflow-hidden rounded-sm">
+              <div class="relative overflow-hidden rounded-xl">
                 <!-- Usa a imagem do vídeo ou uma imagem padrão se não houver -->
-                <img 
-                  :src="video.url_img || '@/assets/movies/movie1.jpg'" 
-                  :alt="video.titulo || 'Vídeo Bíblico'" 
-                  class="w-full h-40 object-cover transition duration-200 group-hover:scale-110" 
-                />
+                <div class="w-full h-0 pb-[56.25%] relative">
+                  <div class="absolute inset-0 overflow-hidden">
+                    <img 
+                      :src="video.url_img || '@/assets/movies/movie1.jpg'" 
+                      :alt="video.titulo || 'Vídeo Bíblico'" 
+                      class="w-[120%] h-[120%] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 object-cover transition duration-200 group-hover:scale-105" 
+                    />
+                  </div>
+                </div>
                 
                 <!-- Título do vídeo -->
                 <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
@@ -184,22 +247,21 @@
           <!-- Container com scroll horizontal -->
           <div 
             ref="continueWatchingContainer"
-            class="flex overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth"
+            class="flex flex-col sm:flex-row overflow-y-auto sm:overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth"
             style="-ms-overflow-style: none; scrollbar-width: none;"
           >
             <div 
               v-for="video in continueWatchingVideos" 
               :key="video.video_id" 
-              class="relative group cursor-pointer flex-none w-[calc(20%-16px)] min-w-[200px]"
+              class="relative group cursor-pointer w-full sm:flex-none sm:w-[calc(20%-16px)] sm:min-w-[200px]"
               @click="openContinueWatchingVideo(video)"
             >
-              <div class="relative overflow-hidden rounded-sm">
+              <div class="relative overflow-hidden rounded-xl">
                 <!-- Usa a imagem do vídeo ou uma imagem padrão se não houver -->
-                <img 
-                  :src="video.url_img || '@/assets/continue/continue1.jpg'" 
-                  :alt="video.titulo || 'Vídeo sem título'" 
-                  class="w-full h-40 object-cover transition duration-200 group-hover:scale-110" 
-                />
+                <div class="w-full h-40 bg-center bg-no-repeat bg-cover transition duration-200 group-hover:scale-105"
+                  :style="{ backgroundImage: `url(${video.url_img || '@/assets/continue/continue1.jpg'})` }"
+                  :aria-label="video.titulo || 'Vídeo sem título'"
+                ></div>
                 
                 <!-- Barra de progresso -->
                 <div class="absolute bottom-0 left-0 right-0 h-1 bg-red-600"></div>
@@ -259,22 +321,21 @@
           <!-- Container com scroll horizontal -->
           <div 
             ref="filmesContainer"
-            class="flex overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth"
+            class="flex flex-col sm:flex-row overflow-y-auto sm:overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth"
             style="-ms-overflow-style: none; scrollbar-width: none;"
           >
             <div 
               v-for="filme in filmes" 
               :key="filme.id" 
-              class="relative group cursor-pointer flex-none w-[calc(20%-16px)] min-w-[200px]"
+              class="relative group cursor-pointer w-full sm:flex-none sm:w-[calc(20%-16px)] sm:min-w-[200px]"
               @click="openVideoModal(filme)"
             >
-              <div class="relative overflow-hidden rounded-sm">
+              <div class="relative overflow-hidden rounded-xl">
                 <!-- Usa a imagem do filme ou uma imagem padrão se não houver -->
-                <img 
-                  :src="filme.url_img || '@/assets/movies/movie1.jpg'" 
-                  :alt="filme.titulo || 'Filme sem título'" 
-                  class="w-full h-40 object-cover transition duration-200 group-hover:scale-110" 
-                />
+                <div class="w-full h-40 bg-center bg-no-repeat bg-cover transition duration-200 group-hover:scale-105"
+                  :style="{ backgroundImage: `url(${filme.url_img || '@/assets/movies/movie1.jpg'})` }"
+                  :aria-label="filme.titulo || 'Filme sem título'"
+                ></div>
                 
                 <!-- Título do filme -->
                 <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
@@ -289,8 +350,8 @@
       </section>
       
       <!-- Seção de Top 10 -->
-      <section class="px-12 py-8">
-        <h2 class="text-xl font-semibold text-white mb-4">Brasil: top 10 em séries hoje</h2>
+      <section class="px-4 sm:px-8 md:px-12 py-6 sm:py-8">
+        <h2 class="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Top 10 em histórias bíblicas e educativas</h2>
         
         <!-- Indicador de carregamento -->
         <div v-if="loadingTop10" class="flex justify-center py-8">
@@ -302,7 +363,67 @@
           Nenhum vídeo encontrado no Top 10.
         </div>
         
-        <!-- Lista de Top 10 com estilo Netflix -->
+        <!-- Versão mobile do Top 10 (exibida apenas em telas pequenas) -->
+        <div v-else-if="isMobileView" class="mt-4 relative">
+          <!-- Botões de navegação para mobile -->
+          <button 
+            class="absolute left-0 z-10 bg-black/50 p-2 rounded-r-lg text-white hover:bg-black/70 transition top-1/2 transform -translate-y-1/2"
+            @click="scrollMobileTop10Left"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button 
+            class="absolute right-0 z-10 bg-black/50 p-2 rounded-l-lg text-white hover:bg-black/70 transition top-1/2 transform -translate-y-1/2"
+            @click="scrollMobileTop10Right"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          
+          <!-- Container com scroll horizontal para mobile -->
+          <div 
+            ref="mobileTop10Container"
+            class="flex overflow-x-auto pb-4 scrollbar-hide gap-3 scroll-smooth w-full pl-2 pr-2"
+            style="-ms-overflow-style: none; scrollbar-width: none;"
+          >
+            <div 
+              v-for="(video, index) in top10Videos" 
+              :key="video.id" 
+              class="relative cursor-pointer flex-none bg-[#1a1a1a] rounded-md overflow-hidden"
+              style="width: 160px;"
+              @click="openVideoModal(video)"
+            >
+              <!-- Tag vermelha com número do Top 10 -->
+              <div class="absolute top-2 left-0 z-10 bg-red-600 text-white font-bold py-1 px-2 text-xs rounded-r-md shadow-md">
+                Top: {{ (index + 1).toString().padStart(2, '0') }}
+              </div>
+              
+              <!-- Imagem do vídeo -->
+              <div class="w-full aspect-[2/3] overflow-hidden">
+                <img 
+                  :src="video.capa_destaque || video.url_img || '@/assets/movies/movie1.jpg'" 
+                  :alt="video.titulo || 'Vídeo sem título'" 
+                  class="w-full h-full object-cover transition duration-200 hover:scale-105"
+                />
+              </div>
+              
+              <!-- Título do vídeo -->
+              <div class="p-2">
+                <h3 class="text-white text-xs font-medium line-clamp-2">{{ video.titulo || 'Sem título' }}</h3>
+              </div>
+              
+              <!-- Badge de novidade -->
+              <div v-if="isNewVideo(video)" class="absolute top-2 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-l-md">
+                Novo
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Versão desktop do Top 10 (exibida apenas em telas maiores) -->
         <div v-else class="relative flex items-center mt-4">
           <!-- Botões de navegação -->
           <button 
@@ -325,27 +446,28 @@
           <!-- Container com scroll horizontal -->
           <div 
             ref="top10Container"
-            class="flex overflow-x-auto pb-4 scrollbar-hide gap-16 scroll-smooth w-full pl-16 pr-16"
+            class="flex overflow-x-auto pb-4 scrollbar-hide gap-4 sm:gap-8 md:gap-16 scroll-smooth w-full pl-4 sm:pl-8 md:pl-16 pr-4 sm:pr-8 md:pr-16"
             style="-ms-overflow-style: none; scrollbar-width: none;"
           >
             <div 
               v-for="(video, index) in top10Videos" 
               :key="video.id" 
               class="relative cursor-pointer flex-none"
-              style="width: 320px; height: 350px;"
+              :class="{'w-[200px] h-[260px] sm:w-[250px] sm:h-[300px] md:w-[320px] md:h-[350px]': true}"
               @click="openVideoModal(video)"
             >
               <!-- Número do ranking em estilo Netflix -->
               <div class="absolute inset-0 flex items-center justify-start z-0 overflow-visible pl-0">
                 <span 
-                  class="text-[280px] font-black leading-none text-[#333333] opacity-80"
-                  style="transform: translateX(-50px);"
+                  class="text-[150px] sm:text-[200px] md:text-[280px] font-black leading-none text-[#333333] opacity-80"
+                  style="transform: translateX(-30px);"
+                  :class="{'sm:translate-x-[-40px] md:translate-x-[-50px]': true}"
                 >{{ index + 1 }}</span>
               </div>
               
               <!-- Container da imagem vertical posicionado acima do número -->
               <div class="relative z-10 w-full h-full flex flex-col items-center justify-center">
-                <div class="relative w-[180px] h-[270px] overflow-hidden rounded-sm ml-20">
+                <div class="relative w-[120px] sm:w-[150px] md:w-[180px] h-[180px] sm:h-[225px] md:h-[270px] overflow-hidden rounded-sm ml-10 sm:ml-14 md:ml-20">
                   <!-- Imagem do vídeo em formato vertical (poster) -->
                   <img 
                     :src="video.capa_destaque || video.url_img || '@/assets/movies/movie1.jpg'" 
@@ -410,22 +532,21 @@
           <!-- Container com scroll horizontal -->
           <div 
             ref="recentVideosContainer"
-            class="flex overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth"
+            class="flex flex-col sm:flex-row overflow-y-auto sm:overflow-x-auto pb-4 scrollbar-hide gap-4 scroll-smooth"
             style="-ms-overflow-style: none; scrollbar-width: none;"
           >
             <div 
               v-for="video in recentVideos" 
               :key="video.id" 
-              class="relative group cursor-pointer flex-none w-[calc(20%-16px)] min-w-[200px]"
+              class="relative group cursor-pointer w-full sm:flex-none sm:w-[calc(20%-16px)] sm:min-w-[200px]"
               @click="openVideoModal(video)"
             >
-              <div class="relative overflow-hidden rounded-sm">
+              <div class="relative overflow-hidden rounded-xl">
                 <!-- Usa a imagem do vídeo ou uma imagem padrão se não houver -->
-                <img 
-                  :src="video.url_img || '@/assets/movies/movie1.jpg'" 
-                  :alt="video.titulo || 'Vídeo sem título'" 
-                  class="w-full h-40 object-cover transition duration-200 group-hover:scale-110" 
-                />
+                <div class="w-full h-40 bg-center bg-no-repeat bg-cover transition duration-200 group-hover:scale-105"
+                  :style="{ backgroundImage: `url(${video.url_img || '@/assets/movies/movie1.jpg'})` }"
+                  :aria-label="video.titulo || 'Vídeo sem título'"
+                ></div>
                 
                 <!-- Badge de novidade -->
                 <div class="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full">
@@ -518,20 +639,57 @@ import { getRecentVideos } from '@/services/recentVideosService';
 // Detectar se é um dispositivo móvel
 const isMobileDevice = ref(false);
 
+// Variável para forçar a exibição da versão web mesmo em dispositivos móveis
+const forceWebVersion = ref(false);
+
+// Variável para controlar a exibição da versão mobile ou desktop do Top 10
+const isMobileView = ref(false);
+
+// Variável para controlar a exibição do menu mobile
+const mobileMenuOpen = ref(false);
+
+// Função para mostrar a versão web quando o usuário clicar no botão "Acessar versão web"
+function showWebVersion() {
+  forceWebVersion.value = true;
+  // Salva a preferência do usuário no localStorage para manter entre sessões
+  localStorage.setItem('netgospelKids_forceWebVersion', 'true');
+}
+
+// Função para alternar a exibição do menu mobile
+function toggleMobileMenu() {
+  mobileMenuOpen.value = !mobileMenuOpen.value;
+}
+
+// Função para fechar o menu mobile
+function closeMobileMenu() {
+  mobileMenuOpen.value = false;
+}
+
 // Função para verificar se é um dispositivo móvel
 function checkIfMobile() {
-  // Verifica o user agent
+  // Verificação mais precisa de dispositivos móveis usando uma combinação de técnicas
+  
+  // 1. Verifica o user agent para dispositivos móveis comuns
   const userAgent = navigator.userAgent.toLowerCase();
-  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i;
+  const mobileRegex = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i;
+  const tabletRegex = /ipad|android(?!.*mobile)/i;
   
-  // Verifica a largura da tela (dispositivos com menos de 768px são considerados móveis)
-  const isMobileWidth = window.innerWidth < 768;
+  // 2. Verifica a largura da tela (dispositivos com menos de 480px são quase certamente móveis)
+  const isMobileWidth = window.innerWidth <= 480;
   
-  // Considera móvel se o user agent indicar ou se a tela for estreita
-  isMobileDevice.value = mobileRegex.test(userAgent) || isMobileWidth;
+  // 3. Verifica se o dispositivo suporta eventos de toque (característica de dispositivos móveis)
+  const hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   
-  // Para testes, forçando a detecção como móvel
-  isMobileDevice.value = true;
+  // Combina os critérios para uma detecção mais precisa
+  // - É definitivamente móvel se o user agent indicar E tiver suporte a toque
+  // - OU se a tela for muito estreita (< 480px)
+  isMobileDevice.value = (mobileRegex.test(userAgent) && hasTouchSupport) || 
+                          isMobileWidth || 
+                          (tabletRegex.test(userAgent) && window.innerWidth < 768);
+  
+  // Atualiza a variável isMobileView para controlar a exibição da versão mobile ou desktop do Top 10
+  // Considera mobile view para telas com menos de 640px de largura
+  isMobileView.value = window.innerWidth < 640;
 }
 
 // Verificar se é um dispositivo móvel antes de montar o componente
@@ -539,9 +697,16 @@ onBeforeMount(() => {
   checkIfMobile();
 });
 
-// Também verificar quando a janela for redimensionada
+// Também verificar quando a janela for redimensionada e carregar preferências do usuário
 onMounted(() => {
+  // Adiciona listener para redimensionamento
   window.addEventListener('resize', checkIfMobile);
+  
+  // Verifica se o usuário já optou por ver a versão web em dispositivos móveis
+  const savedPreference = localStorage.getItem('netgospelKids_forceWebVersion');
+  if (savedPreference === 'true') {
+    forceWebVersion.value = true;
+  }
 });
 
 // Dados do perfil do usuário
@@ -603,6 +768,7 @@ const scrollContainer = ref<HTMLElement | null>(null);
 const continueWatchingContainer = ref<HTMLElement | null>(null);
 const filmesContainer = ref<HTMLElement | null>(null);
 const top10Container = ref<HTMLElement | null>(null);
+const mobileTop10Container = ref<HTMLElement | null>(null);
 const musicasContainer = ref<HTMLElement | null>(null);
 const recentVideosContainer = ref<HTMLElement | null>(null);
 
@@ -681,6 +847,19 @@ function scrollTop10Left() {
 function scrollTop10Right() {
   if (top10Container.value) {
     top10Container.value.scrollBy({ left: 400, behavior: 'smooth' });
+  }
+}
+
+// Funções para controlar o scroll horizontal na versão mobile do Top 10
+function scrollMobileTop10Left() {
+  if (mobileTop10Container.value) {
+    mobileTop10Container.value.scrollBy({ left: -200, behavior: 'smooth' });
+  }
+}
+
+function scrollMobileTop10Right() {
+  if (mobileTop10Container.value) {
+    mobileTop10Container.value.scrollBy({ left: 200, behavior: 'smooth' });
   }
 }
 
