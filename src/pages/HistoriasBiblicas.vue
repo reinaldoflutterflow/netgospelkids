@@ -14,14 +14,25 @@
       </div>
 
       <div class="flex items-center space-x-4">
-        <div class="relative">
+        <!-- Botão do menu mobile (visível apenas em telas pequenas) -->
+        <button 
+          @click="toggleMobileMenu" 
+          class="lg:hidden text-white focus:outline-none mr-4"
+          aria-label="Menu"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <div class="relative hidden sm:block">
           <button class="text-sm font-light text-[#e5e5e5]">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           </button>
         </div>
-        <div class="flex items-center">
+        <div class="hidden sm:flex items-center">
           <img :src="userProfilePhoto" alt="Avatar" class="rounded-full h-7 w-7 object-cover" />
           <div class="flex items-center ml-2">
             <span class="text-white text-sm mr-2">{{ userName }}</span>
@@ -32,6 +43,56 @@
         </div>
       </div>
     </header>
+    
+    <!-- Menu mobile (exibido quando o botão hamburguer é clicado) -->
+    <div 
+      v-if="mobileMenuOpen" 
+      class="fixed top-[60px] left-0 right-0 z-40 bg-black/95 shadow-lg lg:hidden"
+    >
+      <!-- Informações do usuário no topo do menu mobile -->
+      <div class="border-b border-gray-800 px-6 py-4">
+        <div class="flex items-center">
+          <img :src="userProfilePhoto" alt="Avatar" class="rounded-full h-10 w-10 object-cover" />
+          <div class="flex flex-col ml-3">
+            <span class="text-white text-sm font-medium">{{ userName }}</span>
+            <button @click="logout" class="text-sm text-red-500 hover:text-red-400 text-left mt-1">
+              Sair
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <nav class="flex flex-col py-2">
+        <router-link 
+          to="/" 
+          class="px-6 py-3 text-sm font-light text-[#e5e5e5] hover:bg-gray-800 transition duration-[.4s]"
+          @click="closeMobileMenu"
+        >
+          Início
+        </router-link>
+        <router-link 
+          to="/filmes" 
+          class="px-6 py-3 text-sm font-light text-[#e5e5e5] hover:bg-gray-800 transition duration-[.4s]"
+          @click="closeMobileMenu"
+        >
+          Filmes
+        </router-link>
+        <router-link 
+          to="/historias-biblicas" 
+          class="px-6 py-3 text-sm font-light text-[#e5e5e5] bg-gray-800 transition duration-[.4s]"
+          @click="closeMobileMenu"
+        >
+          Histórias Bíblicas
+        </router-link>
+        <router-link 
+          to="/#recentes" 
+          class="px-6 py-3 text-sm font-light text-[#e5e5e5] hover:bg-gray-800 transition duration-[.4s]"
+          @click="closeMobileMenu"
+        >
+          Novidades
+        </router-link>
+      </nav>
+    </div>
 
     <main class="pt-24 px-12 pb-12">
       <h1 class="text-3xl font-bold text-white mb-8">Histórias Bíblicas</h1>
@@ -151,6 +212,19 @@ const loading = ref(true);
 // Variáveis para o modal de vídeo
 const selectedVideo = ref<VideoDevocional | null>(null);
 const showVideoModal = ref(false);
+
+// Variável para controlar o menu mobile
+const mobileMenuOpen = ref(false);
+
+// Função para alternar a visibilidade do menu mobile
+function toggleMobileMenu() {
+  mobileMenuOpen.value = !mobileMenuOpen.value;
+}
+
+// Função para fechar o menu mobile
+function closeMobileMenu() {
+  mobileMenuOpen.value = false;
+}
 
 // Carrega a foto de perfil do usuário
 async function loadUserProfilePhoto() {
