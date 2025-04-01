@@ -1,0 +1,5 @@
+name = "netgospel-kids"
+compatibility_date = "2025-04-01"
+
+[site]
+bucket = "./dist"
